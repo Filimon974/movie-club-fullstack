@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Custom theme variables */
+:root {
+  --color-brand-red: #e50914;
+}
+
+/* If you use @apply inside a CSS file in v4, 
+   you must use @import "tailwindcss" at the top of the file 
+   so the compiler knows what 'bg-zinc-950' means.
+*/
+body {
+  background-color: #09090b; /* bg-zinc-950 */
+  color: #fff; /* text-white */
+}
+
+body ::selection {
+  background-color: #e50914; /* selection:bg-red-600 */
+  color: #fff; /* selection:text-white */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #09090b; /* zinc-950 equivalent */
+}
+::-webkit-scrollbar-thumb {
+  background: #3f3f46; /* zinc-700 equivalent */
+  border-radius: 10px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
