@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-
 import { Menu, X } from 'lucide-react'; // Icons for the toggle
 import Login from './pages/Login';
 import Signup from './pages/Signup';
-import VerifyPage from './pages/verifypage';
+import VerifyPage from './pages/VerifyPage';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
