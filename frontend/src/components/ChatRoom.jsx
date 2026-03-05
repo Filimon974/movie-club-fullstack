@@ -3,7 +3,8 @@ import io from 'socket.io-client';
 import axios from 'axios';
 import { Send, LogOut, Loader2 } from 'lucide-react';
 
-const socket = io.connect("http://localhost:5000");
+// const socket = io.connect("http://localhost:5000");
+const socket = io(import.meta.env.VITE_SOCKET_URL || "https://movie-club-api-7v03.onrender.com");
 
 export default function ChatRoom({ roomName, username, onLeave }) {
     const [message, setMessage] = useState('');
