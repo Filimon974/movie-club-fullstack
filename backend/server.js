@@ -36,36 +36,22 @@ mongoose.connect(process.env.MONGO_URI)
     .catch(err => console.log("❌ Connection Error:", err));
 
 
-// const transporter = nodemailer.createTransport({
-//     host: 'smtp.gmail.com',
-//     port: 465,
-//     secure: true, // Use SSL
-//     auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS // REMINDER: No spaces in Render settings!
-//     },
-//     // This forces the connection to stay on IPv4
-//     family: 4, 
-//     tls: {
-//         // Keeps the connection from dropping on cloud hosts
-//         rejectUnauthorized: false,
-//         servername: 'smtp.gmail.com'
-//     }
-// });
-
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, // must be false for port 587
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Use SSL
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        pass: process.env.EMAIL_PASS // REMINDER: No spaces in Render settings!
     },
+    // This forces the connection to stay on IPv4
+    family: 4, 
     tls: {
-        rejectUnauthorized: false
+        // Keeps the connection from dropping on cloud hosts
+        rejectUnauthorized: false,
+        servername: 'smtp.gmail.com'
     }
 });
-
 // --- SCHEMAS ---
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true},
