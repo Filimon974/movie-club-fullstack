@@ -35,14 +35,6 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.log("❌ Connection Error:", err));
 
-// --- EMAIL CONFIGURATION ---
-// const transporter = nodemailer.createTransport({
-//     service: 'gmail',
-//     auth: {
-//         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS
-//     }
-// });
 
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.gmail.com',
@@ -50,31 +42,30 @@ mongoose.connect(process.env.MONGO_URI)
 //     secure: true, // Use SSL
 //     auth: {
 //         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS
+//         pass: process.env.EMAIL_PASS // REMINDER: No spaces in Render settings!
 //     },
+//     // This forces the connection to stay on IPv4
+//     family: 4, 
 //     tls: {
-//         rejectUnauthorized: false // Helps prevent connection drops on some hosting
+//         // Keeps the connection from dropping on cloud hosts
+//         rejectUnauthorized: false,
+//         servername: 'smtp.gmail.com'
 //     }
 // });
 
-
-
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // Use SSL
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false, // must be false for port 587
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS // REMINDER: No spaces in Render settings!
+        pass: process.env.EMAIL_PASS
     },
-    // This forces the connection to stay on IPv4
-    family: 4, 
     tls: {
-        // Keeps the connection from dropping on cloud hosts
-        rejectUnauthorized: false,
-        servername: 'smtp.gmail.com'
+        rejectUnauthorized: false
     }
 });
+
 // --- SCHEMAS ---
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true},
