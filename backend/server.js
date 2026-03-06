@@ -57,23 +57,24 @@ mongoose.connect(process.env.MONGO_URI)
 //     }
 // });
 
+
+
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
-    secure: true,
-    service: 'gmail', // Adding this back helps with auto-config
+    secure: true, // Use SSL
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS // REMEMBER: No spaces in Render Env Var!
+        pass: process.env.EMAIL_PASS // REMINDER: No spaces in Render settings!
     },
+    // This forces the connection to stay on IPv4
+    family: 4, 
     tls: {
-        rejectUnauthorized: false
-    },
-    connectionTimeout: 10000, // 10 seconds
-    greetingTimeout: 10000,
-    family: 4 // <--- THIS FORCES IPv4 AND FIXES THE ENETUNREACH ERROR
+        // Keeps the connection from dropping on cloud hosts
+        rejectUnauthorized: false,
+        servername: 'smtp.gmail.com'
+    }
 });
-
 // --- SCHEMAS ---
 const userSchema = new mongoose.Schema({
     username: { type: String, required: true, unique: true, trim: true},
