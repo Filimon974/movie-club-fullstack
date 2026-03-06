@@ -52,8 +52,14 @@ mongoose.connect(process.env.MONGO_URI)
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+// 1. Signup with Resend (Cleaned up duplicates)
 app.post('/api/auth/signup', async (req, res) => {
     const { username, email, password } = req.body;
+
+    if (username.length > 10) return res.status(400).json({ error: "Username too long." });
+    const usernameRegex = /^[a-zA-Z0-9]+$/;
+    if (!usernameRegex.test(username)) return res.status(400).json({ error: "No symbols allowed." });
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const token = crypto.randomBytes(32).toString('hex');
@@ -68,35 +74,32 @@ app.post('/api/auth/signup', async (req, res) => {
 
         await newUser.save();
 
-        // RESEND LOGIC
         try {
             await resend.emails.send({
                 from: 'MovieClub <onboarding@resend.dev>',
-                to: email, // During testing, this must be YOUR Resend account email
+                to: email, 
                 subject: 'Verify Your Movie Club Account',
-                html: `<p>Click <a href="https://movie-club-api-7v03.onrender.com/api/auth/verify/${token}">here</a> to verify.</p>`
+                html: `<p>Click <a href="${process.env.FRONTEND_URL}/verify/${token}">here</a> to verify.</p>`
             });
             res.status(201).json({ message: "Signup successful! Check your email." });
         } catch (mailErr) {
             console.error("Resend Error:", mailErr);
-            // We still send success because the user IS in the database
-            res.status(201).json({ message: "User created, but email failed. Check logs." });
+            res.status(201).json({ message: "User created, but email failed." });
         }
-
     } catch (err) {
-        console.error("Signup Error:", err);
+        if (err.code === 11000) return res.status(400).json({ error: "Username/Email taken." });
         res.status(500).json({ error: "Signup failed." });
     }
 });
 
-// Verify connection
-transporter.verify(function(error, success) {
-    if (error) {
-        console.log("SMTP error:", error);
-    } else {
-        console.log("SMTP server is ready to send messages");
-    }
-});
+// // Verify connection
+// transporter.verify(function(error, success) {
+//     if (error) {
+//         console.log("SMTP error:", error);
+//     } else {
+//         console.log("SMTP server is ready to send messages");
+//     }
+// });
 
 // --- SCHEMAS ---
 const userSchema = new mongoose.Schema({
@@ -262,6 +265,30 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // 4. Forgot Password
+// app.post('/api/auth/forgot-password', async (req, res) => {
+//     const { email } = req.body;
+//     try {
+//         const user = await User.findOne({ email });
+//         if (!user) return res.json({ message: "If email exists, link sent." });
+
+//         const token = crypto.randomBytes(32).toString('hex');
+//         user.verificationToken = token;
+//         user.verificationTokenExpires = Date.now() + 3600000;
+//         await user.save();
+
+//         // const url = `http://localhost:5173/reset-password/${token}`;
+//         const url = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+//         await transporter.sendMail({
+//             from: process.env.EMAIL_USER,
+//             to: email,
+//             subject: 'Password Reset',
+//             html: `<p>Reset link: <a href="${url}">${url}</a></p>`
+//         });
+//         res.json({ message: "Reset link sent." });
+//     } catch (err) { res.status(500).json({ error: "Error sending reset email." }); }
+// });
+
+// 4. Forgot Password (Fixed for Resend)
 app.post('/api/auth/forgot-password', async (req, res) => {
     const { email } = req.body;
     try {
@@ -273,10 +300,9 @@ app.post('/api/auth/forgot-password', async (req, res) => {
         user.verificationTokenExpires = Date.now() + 3600000;
         await user.save();
 
-        // const url = `http://localhost:5173/reset-password/${token}`;
         const url = `${process.env.FRONTEND_URL}/reset-password/${token}`;
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
+        await resend.emails.send({
+            from: 'MovieClub <onboarding@resend.dev>',
             to: email,
             subject: 'Password Reset',
             html: `<p>Reset link: <a href="${url}">${url}</a></p>`
@@ -418,35 +444,67 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
+// app.post('/api/admin/create-admin', async (req, res) => {
+//     const { username, email, password } = req.body;
+//     try {
+//         const hashedPassword = await bcrypt.hash(password, 10);
+        
+//         // --- UPDATED: Generate verification token ---
+//         const token = crypto.randomBytes(32).toString('hex');
+//         const tokenExpires = Date.now() + 3600000; // 1 hour
+
+//         const newAdmin = new User({
+//             username,
+//             email,
+//             password: hashedPassword,
+//             role: 'admin',
+//             isVerified: false, // --- CHANGED: Set to false ---
+//             verificationToken: token,
+//             verificationTokenExpires: tokenExpires
+//         });
+//         await newAdmin.save();
+
+//         // --- UPDATED: Send Verification Email ---
+//         // const url = `http://localhost:5173/verify/${token}`;
+//         const url = `${process.env.FRONTEND_URL}/verify/${token}`;
+
+//         await transporter.sendMail({
+//             from: `"MovieVote Admin" <${process.env.EMAIL_USER}>`,
+//             to: email,
+//             subject: 'Verify your Admin Account',
+//             html: `<p>Welcome, Admin! Click <a href="${url}">here</a> to verify your account.</p>`
+//         });
+        
+//         res.json({ message: "Admin created successfully. Verification email sent." });
+//     } catch (err) {
+//         res.status(400).json({ error: "Failed to create admin" });
+//     }
+// });
+
+// --- ADMIN ROUTES (Fixed for Resend) ---
 app.post('/api/admin/create-admin', async (req, res) => {
     const { username, email, password } = req.body;
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
-        
-        // --- UPDATED: Generate verification token ---
         const token = crypto.randomBytes(32).toString('hex');
-        const tokenExpires = Date.now() + 3600000; // 1 hour
 
         const newAdmin = new User({
             username,
             email,
             password: hashedPassword,
             role: 'admin',
-            isVerified: false, // --- CHANGED: Set to false ---
+            isVerified: false,
             verificationToken: token,
-            verificationTokenExpires: tokenExpires
+            verificationTokenExpires: Date.now() + 3600000
         });
         await newAdmin.save();
 
-        // --- UPDATED: Send Verification Email ---
-        // const url = `http://localhost:5173/verify/${token}`;
         const url = `${process.env.FRONTEND_URL}/verify/${token}`;
-
-        await transporter.sendMail({
-            from: `"MovieVote Admin" <${process.env.EMAIL_USER}>`,
+        await resend.emails.send({
+            from: 'MovieClub <onboarding@resend.dev>',
             to: email,
             subject: 'Verify your Admin Account',
-            html: `<p>Welcome, Admin! Click <a href="${url}">here</a> to verify your account.</p>`
+            html: `<p>Welcome, Admin! Click <a href="${url}">here</a> to verify.</p>`
         });
         
         res.json({ message: "Admin created successfully. Verification email sent." });
