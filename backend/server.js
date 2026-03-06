@@ -406,6 +406,10 @@ const PORT = process.env.PORT || 5000;
 // });
 // console.log("MONGO_URI:", process.env.MONGO_URI);
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running at http://${process.env.SERVER_IP}:${PORT}`);
+// server.listen(PORT, '0.0.0.0', () => {
+//     console.log(`🚀 Server running at http://${process.env.SERVER_IP}:${PORT}`);
+// });
+
+server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
 });
