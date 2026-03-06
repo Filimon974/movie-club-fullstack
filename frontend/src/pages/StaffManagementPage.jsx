@@ -17,7 +17,9 @@ export default function StaffManagementPage() {
     const fetchAdmins = async () => {
         setLoading(true);
         try {
-            const res = await axios.get('http://localhost:5000/api/admin/staff');
+            // const res = await axios.get(`http://localhost:5000/api/admin/staff`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/admin/staff`);
+
             setAdmins(res.data);
         } catch (err) {
             console.error("Failed to fetch admins", err);
@@ -30,7 +32,9 @@ export default function StaffManagementPage() {
         e.preventDefault();
         setSubmitting(true); // 2. Start loading
         try {
-            await axios.post('http://localhost:5000/api/admin/create-admin', newAdmin);
+            // await axios.post('http://localhost:5000/api/admin/create-admin', newAdmin);
+            await axios.post(`${import.meta.env.VITE_API_URL}/admin/create-admin`, newAdmin);
+
             setNewAdmin({ username: '', email: '', password: '' });
             setShowForm(false);
             fetchAdmins();

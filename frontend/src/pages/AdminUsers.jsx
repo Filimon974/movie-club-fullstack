@@ -15,7 +15,9 @@ export default function AdminUsers() {
         setLoading(true);
         try {
             // Fetch users from the backend
-            const res = await axios.get(`http://localhost:5000/api/admin/users`);
+            // const res = await axios.get(`http://localhost:5000/api/admin/users`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/admin/users`);
+            
             setUsers(res.data);
         } catch (err) {
             Swal.fire('Error', 'Failed to fetch users.', 'error');

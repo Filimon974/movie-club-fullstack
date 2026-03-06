@@ -10,7 +10,9 @@ export default function ReportsPage() {
         const fetchStats = async () => {
             try {
                 // You will need to create this endpoint in server.js
-                const res = await axios.get('http://localhost:5000/api/admin/stats');
+                // const res = await axios.get('http://localhost:5000/api/admin/stats');
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/admin/stats`);
+
                 setUserCount(res.data.userCount);
             } catch (err) {
                 console.error("Failed to fetch stats", err);

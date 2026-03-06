@@ -21,7 +21,8 @@ export default function ChatPage() {
     const fetchRooms = async () => {
         setLoadingRooms(true);
         try {
-            const res = await axios.get(`http://localhost:5000/api/rooms`);
+            // const res = await axios.get(`http://localhost:5000/api/rooms`);
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/rooms`);
             setRooms(res.data);
         } catch (err) {
             console.error("Failed to fetch rooms", err);
@@ -35,7 +36,8 @@ export default function ChatPage() {
         if (adminRoomName) {
             setCreating(true); // 2. Start loading
             try {
-                await axios.post(`http://localhost:5000/api/rooms`, { name: adminRoomName });
+                // await axios.post(`http://localhost:5000/api/rooms`, { name: adminRoomName });
+                await axios.post(`${import.meta.env.VITE_API_URL}/rooms`, { name: adminRoomName });
                 setAdminRoomName('');
                 fetchRooms(); 
                 Swal.fire('Room Created', `Chat room "${adminRoomName}" is now active.`, 'success');
