@@ -4,7 +4,9 @@ import axios from 'axios';
 import { Send, LogOut, Loader2 } from 'lucide-react';
 
 // const socket = io.connect("http://localhost:5000");
-const socket = io(import.meta.env.VITE_SOCKET_URL || "https://movie-club-api-7v03.onrender.com");
+// const socket = io(import.meta.env.VITE_SOCKET_URL || "https://movie-club-api-7v03.onrender.com");
+const socket = io(import.meta.env.VITE_API_URL.replace('/api', ''));
+
 
 export default function ChatRoom({ roomName, username, onLeave }) {
     const [message, setMessage] = useState('');
@@ -19,7 +21,9 @@ export default function ChatRoom({ roomName, username, onLeave }) {
 
         const fetchMessages = async () => {
             try {
-                const res = await axios.get(`http://localhost:5000/api/chat/${roomName}`);
+                // const res = await axios.get(`http://localhost:5000/api/chat/${roomName}`);
+                // const res = await axios.get(`${import.meta.env.VITE_API_URL}/chat/${roomName}`);
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/chat/${roomName}`);
                 setMessageList(res.data);
             } catch (err) {
                 console.error("Failed to fetch messages", err);
