@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const http = require('http');
 const { Server } = require("socket.io");
 const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const crypto = require('crypto');
 require('dotenv').config();
 
@@ -35,34 +36,56 @@ mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log("✅ MongoDB Connected"))
     .catch(err => console.log("❌ Connection Error:", err));
 
-
 // const transporter = nodemailer.createTransport({
-//     host: 'smtp.gmail.com',
-//     port: 465,
-//     secure: true, // Use SSL
+//     host: "smtp.gmail.com",
+//     port: 587,
+//     secure: false,
 //     auth: {
 //         user: process.env.EMAIL_USER,
-//         pass: process.env.EMAIL_PASS // REMINDER: No spaces in Render settings!
+//         pass: process.env.EMAIL_PASS
 //     },
-//     // This forces the connection to stay on IPv4
-//     family: 4, 
 //     tls: {
-//         // Keeps the connection from dropping on cloud hosts
-//         rejectUnauthorized: false,
-//         servername: 'smtp.gmail.com'
+//         rejectUnauthorized: false
 //     }
 // });
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+app.post('/api/auth/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const token = crypto.randomBytes(32).toString('hex');
+        
+        const newUser = new User({
+            username,
+            email,
+            password: hashedPassword,
+            verificationToken: token,
+            verificationTokenExpires: Date.now() + 3600000 
+        });
+
+        await newUser.save();
+
+        // RESEND LOGIC
+        try {
+            await resend.emails.send({
+                from: 'MovieClub <onboarding@resend.dev>',
+                to: email, // During testing, this must be YOUR Resend account email
+                subject: 'Verify Your Movie Club Account',
+                html: `<p>Click <a href="https://movie-club-api-7v03.onrender.com/api/auth/verify/${token}">here</a> to verify.</p>`
+            });
+            res.status(201).json({ message: "Signup successful! Check your email." });
+        } catch (mailErr) {
+            console.error("Resend Error:", mailErr);
+            // We still send success because the user IS in the database
+            res.status(201).json({ message: "User created, but email failed. Check logs." });
+        }
+
+    } catch (err) {
+        console.error("Signup Error:", err);
+        res.status(500).json({ error: "Signup failed." });
     }
 });
 
