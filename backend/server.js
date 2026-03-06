@@ -44,17 +44,34 @@ mongoose.connect(process.env.MONGO_URI)
 //     }
 // });
 
+// const transporter = nodemailer.createTransport({
+//     host: 'smtp.gmail.com',
+//     port: 465,
+//     secure: true, // Use SSL
+//     auth: {
+//         user: process.env.EMAIL_USER,
+//         pass: process.env.EMAIL_PASS
+//     },
+//     tls: {
+//         rejectUnauthorized: false // Helps prevent connection drops on some hosting
+//     }
+// });
+
 const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
     port: 465,
-    secure: true, // Use SSL
+    secure: true,
+    service: 'gmail', // Adding this back helps with auto-config
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        pass: process.env.EMAIL_PASS // REMEMBER: No spaces in Render Env Var!
     },
     tls: {
-        rejectUnauthorized: false // Helps prevent connection drops on some hosting
-    }
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000, // 10 seconds
+    greetingTimeout: 10000,
+    family: 4 // <--- THIS FORCES IPv4 AND FIXES THE ENETUNREACH ERROR
 });
 
 // --- SCHEMAS ---
